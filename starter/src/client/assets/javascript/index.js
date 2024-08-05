@@ -95,48 +95,63 @@ async function handleCreateRace() {
   const { player_id, track_id } = store;
 
   // const race = TODO - call the asynchronous method createRace, passing the correct parameters
-  const race = await createRace(player_id, track_id);
+  // const race = await createRace(player_id, track_id).catch(error => {
+  //   console.log(`Problem creating race ::`, error.message);
+  // });
+  let race;
+  try {
+    race = await createRace(player_id, track_id);
+  } catch (error) {
+    console.log(`Problem creating race ::`, error.message);
+  }
 
   // TODO - update the store with the race id in the response
   // TIP - console logging API responses can be really helpful to know what data shape you received
   console.log("RACE: ", race);
   store.race_id = race.ID;
-  console.log("store.race_id: ", store.race_id);
 
   // The race has been created, now start the countdown
   // TODO - call the async function runCountdown
-  await runCountdown();
+  try {
+    await runCountdown();
+  } catch (error) {
+    console.log(`Problem running countdown ::`, error.message);
+  }
 
   // TODO - call the async function startRace
   // TIP - remember to always check if a function takes parameters before calling it!
-  await startRace(store.race_id);
+  try {
+    await startRace(store.race_id);
+  } catch (error) {
+    console.log(`Problem starting race ::`, error.message);
+  }
 
   // TODO - call the async function runRace
-  await runRace(store.race_id);
+  try {
+    await runRace(store.race_id);
+  } catch (error) {
+    console.log(`Problem running race ::`, error.message);
+  }
 }
 
 function runRace(raceID) {
-  try {
-    return new Promise((resolve) => {
-      // TODO - use Javascript's built in setInterval method to get race info (getRace function) every 500ms
-      const raceInterval = setInterval(() => {
-        getRace(raceID)
-          .then((res) => {
-            if (res.status === "in-progress") {
-              renderAt("#leaderBoard", raceProgress(res.positions));
-            } else if (res.status === "finished") {
-              console.log("Race has finished!");
-              clearInterval(raceInterval);
-              renderAt("#race", resultsView(res.positions));
-              resolve(res);
-            }
-          })
-          .catch((err) => console.log("Problem with getRace request::", err));
-      }, 500);
-    });
-  } catch (error) {
-    console.log(error);
-  }
+  return new Promise((resolve) => {
+    // TODO - use Javascript's built in setInterval method to get race info (getRace function) every 500ms
+    const raceInterval = setInterval(() => {
+      getRace(raceID)
+        .then((res) => {
+          if (res.status === "in-progress") {
+            renderAt("#leaderBoard", raceProgress(res.positions));
+          } else if (res.status === "finished") {
+            console.log("Race has finished!");
+            clearInterval(raceInterval);
+            renderAt("#race", resultsView(res.positions));
+            resolve(res);
+          }
+        })
+        .catch((err) => console.log("Problem with getRace request::", err));
+    }, 500);
+  });
 
   /*
         TODO - if the race info status property is "in-progress", update the leaderboard by calling:
@@ -155,28 +170,24 @@ function runRace(raceID) {
 }
 
 async function runCountdown() {
-  try {
-    // wait for the DOM to load
-    await delay(1000);
-    let timer = 3;
+  // wait for the DOM to load
+  await delay(1000);
+  let timer = 3;
 
-    return new Promise((resolve) => {
-      // TODO - use Javascript's built in setInterval method to count down once per second
-      const interval = setInterval(() => {
-        // run this DOM manipulation inside the set interval to decrement the countdown for the user
-        document.getElementById("big-numbers").innerHTML = --timer;
+  return new Promise((resolve) => {
+    // TODO - use Javascript's built in setInterval method to count down once per second
+    const interval = setInterval(() => {
+      // run this DOM manipulation inside the set interval to decrement the countdown for the user
+      document.getElementById("big-numbers").innerHTML = --timer;
 
-        // TODO - when the setInterval timer hits 0, clear the interval, resolve the promise, and return
-        if (timer === 0) {
-          clearInterval(interval);
-          resolve();
-          return;
-        }
-      }, 1000);
-    });
-  } catch (error) {
-    console.log(error);
-  }
+      // TODO - when the setInterval timer hits 0, clear the interval, resolve the promise, and return
+      if (timer === 0) {
+        clearInterval(interval);
+        resolve();
+        return;
+      }
+    }, 1000);
+  });
 }
 
 function handleSelectRacer(target) {
@@ -208,7 +219,11 @@ function handleSelectTrack(target) {
 function handleAccelerate() {
   console.log("accelerate button clicked");
   // TODO - Invoke the API call to accelerate
-  accelerate(store.race_id);
+  try {
+    accelerate(store.race_id);
+  } catch (error) {
+    console.log("Problem accelerating ::", error.message);
+  }
 }
 
 // HTML VIEWS ------------------------------------------------
@@ -216,7 +231,7 @@ function handleAccelerate() {
 
 function renderRacerCars(racers) {
   if (!racers.length) {
-    return `<h4>Loading Racers...</4>`;
+    return `<h4>Loading Racers...</h4>`;
   }
 
   const results = racers.map(renderRacerCard).join("");
@@ -228,7 +243,16 @@ function renderRacerCard(racer) {
   const { id, driver_name, top_speed, acceleration, handling } = racer;
   // OPTIONAL: There is more data given about the race cars than we use in the game, if you want to factor in top speed, acceleration,
   // and handling to the various vehicles, it is already provided by the API!
-  return `<h4 class="card racer" id="${id}">${driver_name}</h3>`;
+  return `
+    <h4 class="card racer" id="${id}">
+      ${driver_name}
+      <ul style="font-size:14px;flex-direction:column;">
+        <li>Top speed: ${top_speed}</li>
+        <li>Acceleration: ${acceleration}</li>
+        <li>Handling: ${handling}</li>
+      </ul>
+    </h4>
+  `;
 }
 
 function renderTrackCards(tracks) {
