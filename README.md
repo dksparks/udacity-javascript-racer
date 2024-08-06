@@ -1,3 +1,20 @@
+# UdaciRacer Project for Udacity Asynchronous JavaScript Course
+
+This is my submission for the UdaciRacer project,
+which is the final part of the Udacity Asynchronous
+JavaScript course.
+
+The project instructions and rubric made no mention of
+improving the layout and styling of the pages, either
+through CSS or otherwise, so I have not attempted to
+do so. In particular, I did not change the placeholder
+background image, even though its link is broken.
+
+The original README.md that was provided with the
+starter code is preserved below.
+
+---
+
 # Welcome to the One and only UdaciRacer Simulation Game
 
 ## Project Introduction
